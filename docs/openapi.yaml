@@ -1,0 +1,1309 @@
+openapi: 3.0.3
+
+info:
+  title: College Equipment System API
+  description: REST API системы учёта оборудования и аудиторий колледжа
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000
+    description: Локальный сервер разработки
+
+tags:
+  - name: Auth
+    description: Регистрация, авторизация и работа с токенами
+  - name: Users
+    description: Пользователи и личный кабинет
+  - name: Equipment
+    description: Оборудование
+  - name: Categories
+    description: Категории оборудования
+  - name: Rooms
+    description: Аудитории
+  - name: Requests
+    description: Запросы на получение оборудования
+  - name: Transactions
+    description: Выдача, возврат и перемещение оборудования
+  - name: Files
+    description: Загрузка файлов
+  - name: Dashboard
+    description: Статистика
+  - name: Audit
+    description: Журнал аудита
+  - name: Reports
+    description: Экспорт отчётов
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Регистрация пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Пользователь успешно зарегистрирован
+        '400':
+          description: Ошибка валидации
+        '409':
+          description: Пользователь с таким email уже существует
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Вход в систему
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Успешный вход
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Неверный email или пароль
+        '403':
+          description: Пользователь заблокирован
+
+  /auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: Обновление access-токена
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Токен успешно обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Refresh-токен недействителен или истёк
+
+  /auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Выход из системы
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Выход выполнен успешно
+        '401':
+          description: Пользователь не авторизован
+
+  /auth/forgot-password:
+    post:
+      tags:
+        - Auth
+      summary: Запрос восстановления пароля
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: teacher@example.com
+      responses:
+        '200':
+          description: Ссылка восстановления создана
+        '400':
+          description: Некорректные данные
+
+  /auth/reset-password:
+    post:
+      tags:
+        - Auth
+      summary: Установка нового пароля
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+                - newPassword
+              properties:
+                token:
+                  type: string
+                newPassword:
+                  type: string
+                  format: password
+                  minLength: 8
+      responses:
+        '200':
+          description: Пароль успешно изменён
+        '400':
+          description: Некорректный или истёкший токен
+
+  /users/me:
+    get:
+      tags:
+        - Users
+      summary: Получить профиль текущего пользователя
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Профиль успешно получен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Пользователь не авторизован
+
+    patch:
+      tags:
+        - Users
+      summary: Изменить профиль текущего пользователя
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Иван Иванов
+      responses:
+        '200':
+          description: Профиль успешно обновлён
+        '400':
+          description: Ошибка валидации
+        '401':
+          description: Пользователь не авторизован
+
+  /users/me/password:
+    patch:
+      tags:
+        - Users
+      summary: Сменить пароль
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - currentPassword
+                - newPassword
+              properties:
+                currentPassword:
+                  type: string
+                  format: password
+                newPassword:
+                  type: string
+                  format: password
+                  minLength: 8
+      responses:
+        '200':
+          description: Пароль успешно изменён
+        '400':
+          description: Ошибка валидации
+        '401':
+          description: Текущий пароль указан неверно
+
+  /users:
+    get:
+      tags:
+        - Users
+      summary: Получить список пользователей
+      description: Доступно администратору
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: role
+          schema:
+            type: string
+            enum:
+              - teacher
+              - laboratory_assistant
+              - admin
+        - in: query
+          name: isBlocked
+          schema:
+            type: boolean
+        - $ref: '#/components/parameters/Sort'
+        - $ref: '#/components/parameters/Order'
+      responses:
+        '200':
+          description: Список пользователей получен
+        '403':
+          description: Недостаточно прав
+
+  /users/{id}:
+    get:
+      tags:
+        - Users
+      summary: Получить пользователя по ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Пользователь найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '403':
+          description: Недостаточно прав
+        '404':
+          description: Пользователь не найден
+
+    patch:
+      tags:
+        - Users
+      summary: Изменить пользователя
+      description: Доступно администратору
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                roleId:
+                  type: integer
+                isBlocked:
+                  type: boolean
+      responses:
+        '200':
+          description: Пользователь успешно обновлён
+        '400':
+          description: Ошибка валидации
+        '403':
+          description: Недостаточно прав
+        '404':
+          description: Пользователь не найден
+
+  /equipment:
+    get:
+      tags:
+        - Equipment
+      summary: Получить список оборудования
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Поиск по названию или инвентарному номеру
+        - in: query
+          name: categoryId
+          schema:
+            type: integer
+        - in: query
+          name: roomId
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum:
+              - available
+              - reserved
+              - issued
+              - maintenance
+        - $ref: '#/components/parameters/Sort'
+        - $ref: '#/components/parameters/Order'
+      responses:
+        '200':
+          description: Список оборудования получен
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Equipment'
+
+    post:
+      tags:
+        - Equipment
+      summary: Добавить оборудование
+      description: Доступно лаборанту и администратору
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EquipmentCreate'
+      responses:
+        '201':
+          description: Оборудование создано
+        '400':
+          description: Ошибка валидации
+        '403':
+          description: Недостаточно прав
+        '409':
+          description: Инвентарный номер уже существует
+
+  /equipment/{id}:
+    get:
+      tags:
+        - Equipment
+      summary: Получить оборудование по ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Оборудование найдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Equipment'
+        '404':
+          description: Оборудование не найдено
+
+    patch:
+      tags:
+        - Equipment
+      summary: Изменить оборудование
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EquipmentUpdate'
+      responses:
+        '200':
+          description: Оборудование обновлено
+        '400':
+          description: Ошибка валидации
+        '403':
+          description: Недостаточно прав
+        '404':
+          description: Оборудование не найдено
+
+    delete:
+      tags:
+        - Equipment
+      summary: Удалить оборудование
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Оборудование удалено
+        '403':
+          description: Недостаточно прав
+        '404':
+          description: Оборудование не найдено
+
+  /equipment-categories:
+    get:
+      tags:
+        - Categories
+      summary: Получить категории оборудования
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список категорий получен
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+
+    post:
+      tags:
+        - Categories
+      summary: Создать категорию
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryCreate'
+      responses:
+        '201':
+          description: Категория создана
+        '400':
+          description: Ошибка валидации
+        '403':
+          description: Недостаточно прав
+
+  /equipment-categories/{id}:
+    patch:
+      tags:
+        - Categories
+      summary: Изменить категорию
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryCreate'
+      responses:
+        '200':
+          description: Категория обновлена
+        '403':
+          description: Недостаточно прав
+        '404':
+          description: Категория не найдена
+
+    delete:
+      tags:
+        - Categories
+      summary: Удалить категорию
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Категория удалена
+        '403':
+          description: Недостаточно прав
+        '404':
+          description: Категория не найдена
+
+  /rooms:
+    get:
+      tags:
+        - Rooms
+      summary: Получить список аудиторий
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список аудиторий получен
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Room'
+
+    post:
+      tags:
+        - Rooms
+      summary: Создать аудиторию
+      description: Доступно администратору
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoomCreate'
+      responses:
+        '201':
+          description: Аудитория создана
+        '400':
+          description: Ошибка валидации
+        '403':
+          description: Недостаточно прав
+
+  /rooms/{id}:
+    get:
+      tags:
+        - Rooms
+      summary: Получить аудиторию по ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Аудитория найдена
+        '404':
+          description: Аудитория не найдена
+
+    patch:
+      tags:
+        - Rooms
+      summary: Изменить аудиторию
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoomCreate'
+      responses:
+        '200':
+          description: Аудитория обновлена
+        '403':
+          description: Недостаточно прав
+        '404':
+          description: Аудитория не найдена
+
+    delete:
+      tags:
+        - Rooms
+      summary: Удалить аудиторию
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Аудитория удалена
+        '403':
+          description: Недостаточно прав
+        '404':
+          description: Аудитория не найдена
+
+  /requests:
+    get:
+      tags:
+        - Requests
+      summary: Получить список запросов
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum:
+              - pending
+              - approved
+              - rejected
+              - completed
+        - $ref: '#/components/parameters/Sort'
+        - $ref: '#/components/parameters/Order'
+      responses:
+        '200':
+          description: Список запросов получен
+
+    post:
+      tags:
+        - Requests
+      summary: Создать запрос на оборудование
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestCreate'
+      responses:
+        '201':
+          description: Запрос создан
+        '400':
+          description: Ошибка валидации
+        '409':
+          description: Оборудование недоступно
+
+  /requests/my:
+    get:
+      tags:
+        - Requests
+      summary: Получить собственные запросы
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Запросы текущего пользователя получены
+
+  /requests/{id}:
+    get:
+      tags:
+        - Requests
+      summary: Получить запрос по ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Запрос найден
+        '403':
+          description: Нет доступа к данному запросу
+        '404':
+          description: Запрос не найден
+
+  /requests/{id}/approve:
+    patch:
+      tags:
+        - Requests
+      summary: Подтвердить запрос
+      description: Доступно лаборанту и администратору
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Запрос подтверждён
+        '403':
+          description: Недостаточно прав
+        '404':
+          description: Запрос не найден
+
+  /requests/{id}/reject:
+    patch:
+      tags:
+        - Requests
+      summary: Отклонить запрос
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  type: string
+                  example: Оборудование временно недоступно
+      responses:
+        '200':
+          description: Запрос отклонён
+        '403':
+          description: Недостаточно прав
+        '404':
+          description: Запрос не найден
+
+  /transactions:
+    get:
+      tags:
+        - Transactions
+      summary: Получить историю операций
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - in: query
+          name: equipmentId
+          schema:
+            type: integer
+        - in: query
+          name: userId
+          schema:
+            type: integer
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum:
+              - issue
+              - return
+              - move
+      responses:
+        '200':
+          description: История операций получена
+
+  /transactions/my:
+    get:
+      tags:
+        - Transactions
+      summary: Получить историю операций текущего пользователя
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: История пользователя получена
+
+  /transactions/issue:
+    post:
+      tags:
+        - Transactions
+      summary: Оформить выдачу оборудования
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - equipmentId
+                - userId
+              properties:
+                equipmentId:
+                  type: integer
+                userId:
+                  type: integer
+      responses:
+        '201':
+          description: Выдача оформлена
+        '400':
+          description: Некорректные данные
+        '403':
+          description: Недостаточно прав
+        '409':
+          description: Оборудование нельзя выдать
+
+  /transactions/return:
+    post:
+      tags:
+        - Transactions
+      summary: Оформить возврат оборудования
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - equipmentId
+              properties:
+                equipmentId:
+                  type: integer
+      responses:
+        '201':
+          description: Возврат оформлен
+        '400':
+          description: Некорректные данные
+        '403':
+          description: Недостаточно прав
+
+  /transactions/move:
+    post:
+      tags:
+        - Transactions
+      summary: Переместить оборудование в другую аудиторию
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - equipmentId
+                - toRoomId
+              properties:
+                equipmentId:
+                  type: integer
+                toRoomId:
+                  type: integer
+      responses:
+        '201':
+          description: Перемещение оформлено
+        '400':
+          description: Некорректные данные
+        '403':
+          description: Недостаточно прав
+
+  /files:
+    post:
+      tags:
+        - Files
+      summary: Загрузить файл
+      description: Загрузка изображения или документа с проверкой типа и размера
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Файл успешно загружен
+        '400':
+          description: Недопустимый тип или размер файла
+        '401':
+          description: Пользователь не авторизован
+
+  /dashboard:
+    get:
+      tags:
+        - Dashboard
+      summary: Получить статистику системы
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Статистика получена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+        '403':
+          description: Недостаточно прав
+
+  /audit:
+    get:
+      tags:
+        - Audit
+      summary: Получить журнал аудита
+      description: Доступно администратору
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - in: query
+          name: userId
+          schema:
+            type: integer
+        - in: query
+          name: entityType
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Sort'
+        - $ref: '#/components/parameters/Order'
+      responses:
+        '200':
+          description: Журнал аудита получен
+        '403':
+          description: Недостаточно прав
+
+  /reports/equipment:
+    get:
+      tags:
+        - Reports
+      summary: Экспорт отчёта по оборудованию
+      description: Доступно администратору
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: format
+          required: true
+          schema:
+            type: string
+            enum:
+              - pdf
+              - xlsx
+      responses:
+        '200':
+          description: Отчёт успешно сформирован
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        '403':
+          description: Недостаточно прав
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+
+    Id:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+
+    Page:
+      in: query
+      name: page
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+      description: Номер страницы
+
+    Limit:
+      in: query
+      name: limit
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+      description: Количество элементов на странице
+
+    Sort:
+      in: query
+      name: sort
+      schema:
+        type: string
+      description: Поле сортировки
+
+    Order:
+      in: query
+      name: order
+      schema:
+        type: string
+        enum:
+          - asc
+          - desc
+        default: asc
+      description: Направление сортировки
+
+  schemas:
+
+    RegisterRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+          example: Иван Иванов
+        email:
+          type: string
+          format: email
+          example: teacher@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          example: StrongPassword123
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: teacher@example.com
+        password:
+          type: string
+          format: password
+          example: StrongPassword123
+
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+
+    Role:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 2
+        name:
+          type: string
+          enum:
+            - teacher
+            - laboratory_assistant
+            - admin
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Иван Иванов
+        email:
+          type: string
+          format: email
+          example: teacher@example.com
+        role:
+          $ref: '#/components/schemas/Role'
+        isBlocked:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          example: Проекторы
+        description:
+          type: string
+          nullable: true
+
+    CategoryCreate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: Проекторы
+        description:
+          type: string
+          nullable: true
+
+    Room:
+      type: object
+      properties:
+        id:
+          type: integer
+        number:
+          type: string
+          example: "304"
+        building:
+          type: string
+          nullable: true
+          example: Главный корпус
+        description:
+          type: string
+          nullable: true
+
+    RoomCreate:
+      type: object
+      required:
+        - number
+      properties:
+        number:
+          type: string
+          example: "304"
+        building:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+
+    Equipment:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Проектор Epson
+        inventoryNumber:
+          type: string
+          example: EQ-0001
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum:
+            - available
+            - reserved
+            - issued
+            - maintenance
+        categoryId:
+          type: integer
+        roomId:
+          type: integer
+          nullable: true
+        imagePath:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    EquipmentCreate:
+      type: object
+      required:
+        - name
+        - inventoryNumber
+        - status
+        - categoryId
+      properties:
+        name:
+          type: string
+          example: Проектор Epson
+        inventoryNumber:
+          type: string
+          example: EQ-0001
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum:
+            - available
+            - reserved
+            - issued
+            - maintenance
+        categoryId:
+          type: integer
+        roomId:
+          type: integer
+          nullable: true
+        imagePath:
+          type: string
+          nullable: true
+
+    EquipmentUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        inventoryNumber:
+          type: string
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum:
+            - available
+            - reserved
+            - issued
+            - maintenance
+        categoryId:
+          type: integer
+        roomId:
+          type: integer
+          nullable: true
+        imagePath:
+          type: string
+          nullable: true
+
+    RequestCreate:
+      type: object
+      required:
+        - equipmentIds
+      properties:
+        equipmentIds:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+          example:
+            - 1
+            - 3
+        comment:
+          type: string
+          nullable: true
+          example: Для проведения занятия в аудитории 304
+
+    Dashboard:
+      type: object
+      properties:
+        totalEquipment:
+          type: integer
+          example: 120
+        availableEquipment:
+          type: integer
+          example: 85
+        issuedEquipment:
+          type: integer
+          example: 25
+        maintenanceEquipment:
+          type: integer
+          example: 10
+        pendingRequests:
+          type: integer
+          example: 7
+        equipmentByCategory:
+          type: array
+          items:
+            type: object
+            properties:
+              category:
+                type: string
+              count:
+                type: integer
