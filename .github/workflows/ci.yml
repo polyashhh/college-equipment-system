@@ -1,0 +1,27 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ "main", "feature/**" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Validate Docker Compose file
+      run: docker compose config -q
+
+    - name: Start Database Service
+      run: docker compose up -d db
+
+    - name: Wait for Database to be ready
+      run: sleep 10
+
+    - name: Check Database logs for errors
+      run: docker compose logs db | grep -iE "error|fatal" && exit 1 || exit 0
