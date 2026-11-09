@@ -1,3 +1,5 @@
+//Форма работает, но пока реальную авторизацию не выполняет 
+
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '../components/Button'
@@ -33,7 +35,7 @@ export function LoginPage() {
           <p className="auth-description">
             Единая система для учёта оборудования,
             аудиторий, выдачи техники и просмотра
-            истории перемещений.
+            истории перемещений
           </p>
           <div className="auth-chips">
             <div className="auth-chip">
@@ -61,7 +63,7 @@ export function LoginPage() {
           </h1>
           <p className="auth-card-description">
             Войдите в систему, используя свою
-            электронную почту и пароль.
+            электронную почту и пароль
           </p>
           <div className="auth-field">
             <label htmlFor="email">

@@ -1,0 +1,141 @@
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #fbfbf7;
+}
+
+.app-sidebar {
+  position: sticky;
+  top: 0;
+  width: 250px;
+  height: 100vh;
+  flex-shrink: 0;
+  padding: 34px 24px;
+  background: #f6f8fc;
+  border-right: 1px solid #dfe5ef;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #4f6f9e;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.sidebar-logo {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: linear-gradient(145deg, #9fc2ea, #6f95c8);
+}
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 42px;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 14px;
+  color: #718098;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.sidebar-link:hover {
+  background: #eef3fa;
+}
+
+.sidebar-link-active {
+  background: #eaf1fb;
+  color: #4f6f9e;
+  font-weight: 700;
+}
+
+.sidebar-dot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #9eb7d9;
+}
+
+.sidebar-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid #dfe5ef;
+}
+
+.profile-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #d9e5f4;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #4f6f9e;
+}
+
+.sidebar-profile strong {
+  display: block;
+  font-size: 13px;
+}
+
+.sidebar-profile span {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  color: #7e8797;
+}
+
+.app-content {
+  flex: 1;
+  min-width: 0;
+  padding: 34px 40px;
+}
+
+@media (max-width: 700px) {
+  .app-layout {
+    flex-direction: column;
+  }
+  .app-sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    padding: 18px;
+  }
+  .sidebar-menu {
+    flex-direction: row;
+    overflow-x: auto;
+    margin-top: 20px;
+  }
+  .sidebar-link {
+    white-space: nowrap;
+  }
+  .sidebar-profile {
+    display: none;
+  }
+  .app-content {
+    padding: 20px;
+  }
+}
