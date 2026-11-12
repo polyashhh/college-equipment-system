@@ -8,7 +8,9 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+      "start": "tsx server.js",
+      "dev": "tsx watch server.js",
+      "generate": "prisma generate"
   },
   "repository": {
     "type": "git",
