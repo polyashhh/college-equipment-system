@@ -8,7 +8,7 @@ import jwt from 'jsonwebtoken';
 import equipmentRoutes from './routes/equipmentRoutes.js';
 import roomRoutes from './routes/roomRoutes.js';
 import requestRoutes from './routes/requestRoutes.js';
-
+import categoryRoutes from './routes/categoryRoutes.js';
 dotenv.config();
 
 // Безопасность: если JWT_SECRET не задан, сервер не запустится
@@ -170,6 +170,7 @@ app.get('/admin-panel', checkRole(['Администратор', 'Лаборан
 app.use('/equipment', equipmentRoutes);
 app.use('/rooms', roomRoutes);
 app.use('/requests', requestRoutes);
+app.use('/categories', categoryRoutes);
 
 app.get('/', (req, res) => {
     res.send('Сервер работает! База подключена.');
