@@ -6,12 +6,14 @@ import { PrismaClient } from './generated/prisma/client.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import equipmentRoutes from './routes/equipmentRoutes.js';
+import roomRoutes from './routes/roomRoutes.js';
+import requestRoutes from './routes/requestRoutes.js';
 
 dotenv.config();
 
 // Безопасность: если JWT_SECRET не задан, сервер не запустится
 if (!process.env.JWT_SECRET) {
-    console.error('КРИТИЧЕСКАЯ ОШИБКА: JWT_SECRET не задан в .env');
+    console.error('КРИТИЧЕСКАЯ ОШИБКА: JWT_SECRET не задан');
     process.exit(1);
 }
 
@@ -166,6 +168,8 @@ app.get('/admin-panel', checkRole(['Администратор', 'Лаборан
 // Подключаем CRUD для оборудования
 
 app.use('/equipment', equipmentRoutes);
+app.use('/rooms', roomRoutes);
+app.use('/requests', requestRoutes);
 
 app.get('/', (req, res) => {
     res.send('Сервер работает! База подключена.');
