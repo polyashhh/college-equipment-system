@@ -40,9 +40,13 @@ jobs:
         run: npm run build
 
       - name: Validate Docker Compose
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.CI_POSTGRES_PASSWORD }}
         run: docker compose config -q
 
       - name: Start PostgreSQL
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.CI_POSTGRES_PASSWORD }}
         run: docker compose up -d db
 
       - name: Check database readiness
