@@ -9,6 +9,9 @@ import equipmentRoutes from './routes/equipmentRoutes.js';
 import roomRoutes from './routes/roomRoutes.js';
 import requestRoutes from './routes/requestRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import transactionRoutes from './routes/transactionRoutes.js';
+
 dotenv.config();
 
 // Безопасность: если JWT_SECRET не задан, сервер не запустится
@@ -171,6 +174,8 @@ app.use('/equipment', equipmentRoutes);
 app.use('/rooms', roomRoutes);
 app.use('/requests', requestRoutes);
 app.use('/categories', categoryRoutes);
+app.use('/users', checkRole(['Администратор']), userRoutes);
+app.use('/transactions', transactionRoutes);
 
 app.get('/', (req, res) => {
     res.send('Сервер работает! База подключена.');
