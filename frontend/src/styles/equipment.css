@@ -1,0 +1,144 @@
+.equipment-page {
+  width: 100%;
+  color: #243149;
+}
+
+.equipment-header {
+  margin-bottom: 30px;
+}
+
+.equipment-header h1 {
+  margin: 0;
+  color: #5073a3;
+  font-size: 34px;
+}
+
+.equipment-header p {
+  margin: 8px 0 0;
+  color: #7e8797;
+  font-size: 14px;
+}
+
+.equipment-page > .ui-card {
+  margin-bottom: 20px;
+}
+
+.equipment-filters {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 12px;
+}
+
+.equipment-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.equipment-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.equipment-table th {
+  padding: 14px;
+  border-bottom: 1px solid #dfe5ef;
+  color: #7e8797;
+  font-weight: 600;
+}
+
+.equipment-table td {
+  padding: 16px 14px;
+  border-bottom: 1px solid #edf0f5;
+  color: #526b90;
+}
+
+.equipment-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.equipment-link {
+  color: #5274a3;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.equipment-link:hover {
+  text-decoration: underline;
+}
+
+.equipment-empty {
+  padding: 20px;
+  text-align: center;
+  color: #7e8797;
+}
+
+@media (max-width: 1000px) {
+  .equipment-filters {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .equipment-table {
+    min-width: 800px;
+  }
+}
+
+.equipment-add-button,
+.equipment-form button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+}
+
+.equipment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.equipment-form label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.equipment-form button {
+  align-self: flex-start;
+  margin-top: 8px;
+}
+
+.equipment-form button:disabled {
+  opacity: 0.5;
+}
+
+.equipment-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.equipment-actions button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: #e5e7eb;
+  color: #111827;
+  cursor: pointer;
+}
+
+.equipment-actions .equipment-delete {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.equipment-actions button:hover,
+.equipment-add-button:hover {
+  opacity: 0.85;
+}
