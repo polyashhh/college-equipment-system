@@ -1,0 +1,72 @@
+:root {
+  --bg: #e9edf8;
+  --surface: #fbfbf7;
+  --card: #ffffff;
+  --blue: #7fa4d8;
+  --blue-dark: #4f6f9e;
+  --text: #243149;
+  --muted: #7e8797;
+  --border: #dfe5ef;
+  --success-bg: #edf5ee;
+  --success-text: #5f8068;
+  --warning-bg: #f7f1df;
+  --warning-text: #8d7847;
+  --danger-bg: #f8eaea;
+  --danger-text: #9a6666;
+}
+.ui-button {
+  height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: white;
+  color: #5c6f8e;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ui-button-primary {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: white;
+}
+.ui-input,
+.ui-select {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fbfcfe;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+}
+.ui-card {
+  background: var(--card);
+  border: 1px solid #e6ebf2;
+  border-radius: 22px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(74, 92, 124, 0.05);
+}
+.ui-badge {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.ui-badge-success {
+  background: var(--success-bg);
+  color: var(--success-text);
+}
+.ui-badge-warning {
+  background: var(--warning-bg);
+  color: var(--warning-text);
+}
+.ui-badge-danger {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+}
