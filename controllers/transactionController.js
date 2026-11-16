@@ -8,8 +8,8 @@ export const getAllTransactions = async (req, res) => {
                 equipment: { select: { name: true, inventory_number: true } },
                 users_equipment_transactions_user_idTousers: { select: { name: true } },
                 users_equipment_transactions_performed_byTousers: { select: { name: true } },
-                rooms_equipment_transactions_from_room_idToroooms: { select: { number: true } },
-                rooms_equipment_transactions_to_room_idToroooms: { select: { number: true } },
+                rooms_equipment_transactions_from_room_idTorooms: { select: { number: true } },
+                rooms_equipment_transactions_to_room_idTorooms: { select: { number: true } },
             },
             orderBy: { created_at: 'desc' }
         });

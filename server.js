@@ -175,7 +175,7 @@ app.use('/rooms', roomRoutes);
 app.use('/requests', requestRoutes);
 app.use('/categories', categoryRoutes);
 app.use('/users', checkRole(['Администратор']), userRoutes);
-app.use('/transactions', transactionRoutes);
+app.use('/transactions', checkRole(['Администратор', 'Лаборант']), transactionRoutes);
 
 app.get('/', (req, res) => {
     res.send('Сервер работает! База подключена.');
