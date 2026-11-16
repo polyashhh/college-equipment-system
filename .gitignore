@@ -1,1 +1,17 @@
 .DS_Store
+node_modules
+
+/generated/prisma
+
+# Environment variables
+.env
+.env.local
+
+# AI tool files
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
+
+# OS files
+.DS_Store
